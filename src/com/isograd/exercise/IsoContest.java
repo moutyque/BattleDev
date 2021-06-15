@@ -9,64 +9,68 @@ import java.util.*;
 
 public class IsoContest {
     static int N;
-    static String ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    static HashMap<String, Integer> commands = new HashMap<>();
 
     public static void main(String[] argv) {
 
         Scanner sc = new Scanner(System.in);
+        boolean[] isOccupied = new boolean[10];
+        int countOccupied = 0;
 
-        N = sc.nextInt();
-        sc.nextLine(); //Needed to be able to read the next full line
-        String line = sc.nextLine();
+        int result = -1;
+        boolean columnFound = false;
+        boolean isRowBelow = false;
+        for (int i = 0; i < 20; i++) {
+            String line = sc.nextLine();
+            int countEmpty = 0;
 
-        String s1 = line.substring(0, N / 2);
-        String s2 = line.substring(N / 2);
-
-        int[] count1 = new int[26];
-        int[] count2 = new int[26];
-
-
-        for (int i = 0; i < N / 2; i++) {
-            count1[ALPHA.indexOf(s1.charAt(i))]++;
-        }
-
-        for (int i = 0; i < N / 2; i++) {
-            count2[ALPHA.indexOf(s2.charAt(i))]++;
-        }
-
-        int result = 0;
-        if (sameNbChar(count1, count2)) {
-            result++;
-        }
-
-        for(int i = 0;i<N/2-1;i++){
-            int a1 = ALPHA.indexOf(s1.charAt(i));
-            int a2 = ALPHA.indexOf(s2.charAt(i));
-            count1[a1]--;
-            count2[a1]++;
-
-            count2[a2]--;
-            count1[a2]++;
-            if (sameNbChar(count1, count2)) {
-                result++;
+            //If we found a solution on row above we check that the char in the same column is #, if so this column is a valid solution
+            if (isRowBelow && line.charAt(result) == '#') {
+                System.out.println("BOOM " + (result + 1));
+                return;
             }
+
+            for (int j = 0; j < 10; j++) {
+                char c = line.charAt(j);
+                Character left = j == 0 ? null : line.charAt(j - 1);
+                Character right = j == 9 ? null : line.charAt(j + 1);
+                if (c == '#') {//If a column char is # we change the status of the occupied column, if all columns are occupied by # we will not have solution
+                    if(!isOccupied[j]){
+                        countOccupied++;
+                    }
+
+                    isOccupied[j] = true;
+                    if (countOccupied==10) {
+                        System.out.println("NOPE");
+                        return;
+                    }
+                } else {
+                    //if the column contains a . and the left & right a # it is a valid solution
+                    if (countEmpty < 2 && c == '.' && ((j == 0 && right == '#') || (j == 9 && left == '#') || (left != null && left == '#' && right != null && right == '#'))) {
+                        result = j;
+                        columnFound = true;
+                        isRowBelow = true;
+                    }
+                    if (c == '.') countEmpty++;
+                }
+            }
+            if(countEmpty>1) {//If there is more than one gap in the row, we can not do a Tetris in that row
+                isRowBelow = false;
+                columnFound = false;
+                result=-1;
+            }
+
+
+
         }
 
-        System.out.println(result*2);
-
+        //We reach the end of the tetris
+        if(columnFound){
+            System.out.println("BOOM " + (result + 1));
+        }else{
+            System.out.println("NOPE");
+        }
 
     }
-
-    public static boolean sameNbChar(int[] count1, int[] count2) {
-        for (int i = 0; i < 26; i++) {
-            if (count1[i] != count2[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
 }
